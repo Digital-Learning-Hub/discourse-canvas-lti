@@ -24,8 +24,8 @@ enabled_site_setting :lti_consumer_authenticate_url
 require_relative 'lti_strategy.rb'
 require_relative 'lti_authenticator.rb'
 auth_provider({
-  title: 'Click to login with EdX',
-  message: 'Click to login with EdX',
+  title: 'Click to login with Canvas',
+  message: 'Click to login with Canvas',
   authenticator: LTIAuthenticator.new,
   full_screen_login: true,
   custom_url: '/lti/redirect_to_consumer'
