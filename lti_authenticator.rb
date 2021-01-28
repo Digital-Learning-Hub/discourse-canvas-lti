@@ -32,7 +32,7 @@ class LTIAuthenticator < ::Auth::Authenticator
     # We also may need to modify the EdX username to conform to Discourse's username
     # validations.
     omniauth_params = auth_token[:info]
-    auth_result.username = build_discourse_username omniauth_params[:edx_username]
+    auth_result.username = build_discourse_username omniauth_params[:email].split('@').first
     auth_result.name = omniauth_params[:edx_username]
     auth_result.email = omniauth_params[:email]
     auth_result.email_valid = auth_result.email.present?
