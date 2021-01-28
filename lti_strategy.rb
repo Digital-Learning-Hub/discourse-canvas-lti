@@ -18,6 +18,7 @@ module OmniAuth
           edx_username: @lti_provider.lis_person_sourcedid,
           email: @lti_provider.lis_person_contact_email_primary,
           roles: @lti_provider.roles,
+          fullname: @lti_provider.lis_person_name_full,
           resource_link_id: @lti_provider.resource_link_id,
           context_id: @lti_provider.context_id
         }

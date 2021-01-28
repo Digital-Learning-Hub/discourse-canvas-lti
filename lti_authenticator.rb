@@ -33,7 +33,7 @@ class LTIAuthenticator < ::Auth::Authenticator
     # validations.
     omniauth_params = auth_token[:info]
     auth_result.username = build_discourse_username omniauth_params[:email].split('@').first
-    auth_result.name = omniauth_params[:edx_username]
+    auth_result.name = omniauth_params[:fullname]
     auth_result.email = omniauth_params[:email]
     auth_result.email_valid = auth_result.email.present?
     lti_uid = auth_token[:uid]
