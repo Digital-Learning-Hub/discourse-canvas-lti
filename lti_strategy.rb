@@ -15,7 +15,7 @@ module OmniAuth
       uid { @lti_provider.user_id }
       info do
         {
-          edx_username: @lti_provider.ext_user_username,
+          edx_username: @lti_provider.lis_person_sourcedid,
           email: @lti_provider.lis_person_contact_email_primary,
           roles: @lti_provider.roles,
           resource_link_id: @lti_provider.resource_link_id,
