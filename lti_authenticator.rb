@@ -46,9 +46,14 @@ class LTIAuthenticator < ::Auth::Authenticator
     # This appears related to changes in https://github.com/discourse/discourse/pull/4977
     user_by_email = User.find_by_email(auth_result.email.downcase)
     user_by_username = User.find_by_username(auth_result.username)
+
+    ins_name =  omniauth_params[:context_label] + '_INSTRUCTORS'
+
     group_by_name = Group.find_by(name: omniauth_params[:context_label])
-    ins_group_by_name = Group.find_by(name: omniauth_params[:context_label]+ '_INSTRUCTORS')
+    ins_group_by_name = Group.find_by(name: ins_name)
+
     category_by_name = Category.find_by_slug_path(omniauth_params[:context_label])
+
     both_matches_found = user_by_email.present? && user_by_username.present?
     no_matches_found = user_by_email.nil? && user_by_username.nil?
     no_groups = group_by_name.nil? && ins_group_by_name.nil?
@@ -71,17 +76,18 @@ class LTIAuthenticator < ::Auth::Authenticator
     end
 
     if no_groups
-      main_group = Group.new(name: omniauth_params[:context_label], title: omniauth_params[:context_title])
+      main_group = Group.new(name: omniauth_params[:context_label])
       main_group.visibility_level = 4
       main_group.save!
       main_group.reload
 
-      ins_group = Group.new(name: omniauth_params[:context_label] + '_INSTRUCTORS', title: omniauth_params[:context_title] + 'Instructors')
+
+      ins_group = Group.new(name: ins_name)
       ins_group.visibility_level = 4
       ins_group.save!
       ins_group.reload
 
-      category = Category.new(name: omniauth_params[:context_title], slug: omniauth_params[:context_label])
+      category = Category.new(name: omniauth_params[:context_title], slug: omniauth_params[:context_label], user_id: user.id)
       category.reviewable_by_group_id = ins_group.id
       category.save!
       category.reload
@@ -96,7 +102,7 @@ class LTIAuthenticator < ::Auth::Authenticator
     end
 
     group_by_name = Group.find_by(name: omniauth_params[:context_label])
-    ins_group_by_name = Group.find_by(name: omniauth_params[:context_label]+ '_INSTRUCTORS')
+    ins_group_by_name = Group.find_by(name: ins_name)
 
     if omniauth_params[:roles].include? "Instructor"
       g_user = GroupUser.new(group_id: ins_group_by_name.id, user_id: user.id)
