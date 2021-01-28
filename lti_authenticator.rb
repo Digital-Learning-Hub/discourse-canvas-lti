@@ -53,7 +53,7 @@ class LTIAuthenticator < ::Auth::Authenticator
       user = user_by_email
     elsif no_matches_found
       log :info, "after_authenticate, no matches found for email or username, creating user record for first-time user..."
-      user = User.new(email: auth_result.email.downcase, username: auth_result.username)
+      user = User.new(email: auth_result.email.downcase, username: auth_result.username, name: auth_result.name, )
       user.staged = false
       user.active = true
       user.password = SecureRandom.hex(32)
