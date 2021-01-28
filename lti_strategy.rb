@@ -15,7 +15,7 @@ module OmniAuth
       uid { @lti_provider.user_id }
       info do
         {
-          edx_username: @lti_provider.lis_person_sourcedid,
+          edx_username: @lti_provider.ext_user_username,
           email: @lti_provider.lis_person_contact_email_primary,
           roles: @lti_provider.roles,
           resource_link_id: @lti_provider.resource_link_id,
@@ -102,7 +102,7 @@ module OmniAuth
       # Respect the "url" custom parameter in EdX and make sure we redirect to it
       # after authentication.  This allows learners to click an LTI link and jump
       # directly to a particular page.
-      # 
+      #
       # Typical OmniAuth strategies expect all URLs to redirect to a login
       # page, and then thread the origin URL through the OAuth process as the
       # `origin` query param.  LTI expects to be able to post to a single URL, and

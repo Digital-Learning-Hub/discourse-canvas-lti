@@ -1,5 +1,5 @@
 # Discourse Authenticator class
-class LTIAuthenticator < ::Auth::Authenticator  
+class LTIAuthenticator < ::Auth::Authenticator
   DISCOURSE_USERNAME_MAX_LENGTH = 20
 
   # override hook
@@ -69,7 +69,7 @@ class LTIAuthenticator < ::Auth::Authenticator
     # Return a reference to the User record.
     auth_result.user = user
     log :info, "after_authenticate, user: #{auth_result.user.inspect}"
-    
+
     # This isn't needed for authentication, it just tracks the unique EdX user ids
     # in a way we could look them up from the EdX username if we needed to.
     plugin_store_key = "lti_username_#{auth_result.username}"
