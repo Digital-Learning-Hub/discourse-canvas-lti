@@ -46,6 +46,9 @@ class LTIAuthenticator < ::Auth::Authenticator
     # This appears related to changes in https://github.com/discourse/discourse/pull/4977
     user_by_email = User.find_by_email(auth_result.email.downcase)
     user_by_username = User.find_by_username(auth_result.username)
+    group_by_name = Group.lookup_group(omniauth_params[:context_label])
+    ins_group_by_name = Group.lookup_group(omniauth_params[:context_label]+ '_INSTRUCTORS')
+    category_by_name = Category.find_by_slug_path(omniauth_params[:context_label])
     both_matches_found = user_by_email.present? && user_by_username.present?
     no_matches_found = user_by_email.nil? && user_by_username.nil?
     if both_matches_found && user_by_email.id == user_by_username.id
@@ -65,6 +68,45 @@ class LTIAuthenticator < ::Auth::Authenticator
       log :info, "after_authenticate, user_by_username: #{user_by_username.inspect}"
       raise ::ActiveRecord::RecordInvalid('LTIAuthenticator: edge case for finding User records where username and email did not match, aborting...')
     end
+
+    if !group_by_name && !category_by_name
+      main_group = Group.new(name: omniauth_params[:context_label], title: omniauth_params[:context_title])
+      main_group.visibility_level = 4
+      main_group.save!
+      main_group.reload
+
+      ins_group = Group.new(name: omniauth_params[:context_label] + '_INSTRUCTORS', title: omniauth_params[:context_title] + 'Instructors')
+      ins_group.visibility_level = 4
+      ins_group.save!
+      ins_group.reload
+
+      category = Category.new(name: omniauth_params[:context_title], slug: omniauth_params[:context_label])
+      category.reviewable_by_group_id = ins_group.id
+      category.save!
+      category.reload
+
+      cat_group_main = CategoryGroup.new(category_id: category.id, group_id: main_group.id)
+      cat_group_ins = CategoryGroup.new(category_id: category.id, group_id: ins_group.id)
+
+      cat_group_main.save!
+      cat_group_main.reload
+      cat_group_ins.save!
+      cat_group_ins.reload
+    end
+
+    group_by_name = Group.lookup_group(omniauth_params[:context_label])
+    ins_group_by_name = Group.lookup_group(omniauth_params[:context_label]+ '_INSTRUCTORS')
+
+    if omniauth_params[:roles].include? "Instructor"
+      g_user = GroupUser.new(group_id: ins_group_by_name.id, user_id: user.id)
+      g_user.save!
+      g_user.reload
+    else
+      g_user = GroupUser.new(group_id: group_by_name.id, user_id: user.id)
+      g_user.save!
+      g_user.reload
+    end
+
 
     # Return a reference to the User record.
     auth_result.user = user
