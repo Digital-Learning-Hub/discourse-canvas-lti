@@ -26,7 +26,9 @@ class LTIAuthenticator < ::Auth::Authenticator
   def after_authenticate(auth_token)
     log :info, 'after_authenticate'
     log :info, "after_authenticate, auth_token: #{auth_token.inspect}"
+
     auth_result = Auth::Result.new
+
 
     # Grab the info we need from OmniAuth
     # We also may need to modify the EdX username to conform to Discourse's username
@@ -39,6 +41,7 @@ class LTIAuthenticator < ::Auth::Authenticator
     lti_uid = auth_token[:uid]
     auth_result.extra_data = omniauth_params.merge(lti_uid: lti_uid)
     log :info, "after_authenticate, auth_result: #{auth_result.inspect}"
+    log :warn, "roles: #{omniauth_params[:roles]}"
 
     # Lookup or create a new User record, requiring that both email and username match.
     # Discourse's User model patches some Rails methods, so we use their
@@ -66,6 +69,7 @@ class LTIAuthenticator < ::Auth::Authenticator
       user.staged = false
       user.active = true
       user.password = SecureRandom.hex(32)
+      user.trust_level = 4
       user.save!
       user.reload
     else
@@ -104,7 +108,7 @@ class LTIAuthenticator < ::Auth::Authenticator
     group_by_name = Group.find_by(name: omniauth_params[:context_label])
     ins_group_by_name = Group.find_by(name: ins_name)
 
-    if omniauth_params[:roles].include? "Instructor"
+    if omniauth_params[:roles].include? "instructor"
       g_user = GroupUser.new(group_id: ins_group_by_name.id, user_id: user.id)
       g_user.save!
       g_user.reload
