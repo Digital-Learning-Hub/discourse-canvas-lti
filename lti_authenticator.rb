@@ -29,7 +29,6 @@ class LTIAuthenticator < ::Auth::Authenticator
 
     auth_result = Auth::Result.new
 
-
     # Grab the info we need from OmniAuth
     # We also may need to modify the EdX username to conform to Discourse's username
     # validations.
@@ -50,7 +49,7 @@ class LTIAuthenticator < ::Auth::Authenticator
     user_by_email = User.find_by_email(auth_result.email.downcase)
     user_by_username = User.find_by_username(auth_result.username)
 
-    ins_name =  omniauth_params[:context_label] + '_INSTRUCTORS'
+    ins_name = omniauth_params[:context_label] + '_INSTRUCTORS'
 
     group_by_name = Group.find_by(name: omniauth_params[:context_label])
     ins_group_by_name = Group.find_by(name: ins_name)
@@ -66,7 +65,7 @@ class LTIAuthenticator < ::Auth::Authenticator
       user = user_by_email
     elsif no_matches_found
       log :info, "after_authenticate, no matches found for email or username, creating user record for first-time user..."
-      user = User.new(email: auth_result.email.downcase, username: auth_result.username, name: auth_result.name, )
+      user = User.new(email: auth_result.email.downcase, username: auth_result.username, name: auth_result.name,)
       user.staged = false
       user.active = true
       user.password = SecureRandom.hex(32)
@@ -88,7 +87,6 @@ class LTIAuthenticator < ::Auth::Authenticator
       main_group.visibility_level = 4
       main_group.save!
       main_group.reload
-
 
       ins_group = Group.new(name: ins_name)
       ins_group.visibility_level = 4
@@ -116,44 +114,41 @@ class LTIAuthenticator < ::Auth::Authenticator
     if new_user
       if omniauth_params[:roles].include? "instructor"
         g_user = GroupUser.new(group_id: ins_group_by_name.id, user_id: user.id)
-        g_user.save!
-        g_user.reload
-      else
-        g_user = GroupUser.new(group_id: group_by_name.id, user_id: user.id)
+        g_user.owner = true
         g_user.save!
         g_user.reload
       end
+      g_user = GroupUser.new(group_id: group_by_name.id, user_id: user.id)
+
+      if omniauth_params[:roles].include? "instructor"
+        g_user.owner = true
+      end
+
+      g_user.save!
+      g_user.reload
     else
       if omniauth_params[:roles].include? "instructor"
-        g_user_by_id = GroupUser.find_all_by_user_id(user_id: user.id)
-        found = false
-        g_user_by_id.each do |element|
-          if element.group_id == ins_group_by_name.id
-            found = true
-          end
-        end
-        if !found
+        g_user_by_id = GroupUser.find_by(group_id: ins_group_by_name.id, user_id: user.id)
+
+        if g_user_by_id.nil?
           g_user = GroupUser.new(group_id: ins_group_by_name.id, user_id: user.id)
-          g_user.save!
-          g_user.reload
-        end
-      else
-        g_user_by_id = GroupUser.find_all_by_user_id(user_id: user.id)
-        found = false
-        g_user_by_id.each do |element|
-          if element.group_id == group_by_name.id
-            found = true
-          end
-        end
-        if !found
-          g_user = GroupUser.new(group_id: group_by_name.id, user_id: user.id)
+          g_user.owner = true
           g_user.save!
           g_user.reload
         end
       end
 
-    end
+      g_user_by_id = GroupUser.find_by(group_id: group_by_name.id, user_id: user.id)
 
+      if g_user_by_id.nil?
+        g_user = GroupUser.new(group_id: group_by_name.id, user_id: user.id)
+        if omniauth_params[:roles].include? "instructor"
+          g_user.owner = true
+        end
+        g_user.save!
+        g_user.reload
+      end
+    end
 
     # Return a reference to the User record.
     auth_result.user = user
@@ -169,6 +164,7 @@ class LTIAuthenticator < ::Auth::Authenticator
   end
 
   protected
+
   def log(method_symbol, text)
     Rails.logger.send(method_symbol, "LTIAuthenticator: #{text}")
   end
@@ -185,6 +181,6 @@ class LTIAuthenticator < ::Auth::Authenticator
   # username (eg, kevin__robinson and kevin_robinson), but the authentication methods above
   # require that email addresses match exactly as well.
   def build_discourse_username(edx_username)
-    edx_username.slice(0, DISCOURSE_USERNAME_MAX_LENGTH).gsub('__','_').chomp('_')
+    edx_username.slice(0, DISCOURSE_USERNAME_MAX_LENGTH).gsub('__', '_').chomp('_')
   end
 end
