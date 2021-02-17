@@ -123,6 +123,35 @@ class LTIAuthenticator < ::Auth::Authenticator
         g_user.save!
         g_user.reload
       end
+    else
+      if omniauth_params[:roles].include? "instructor"
+        g_user_by_id = GroupUser.find_all_by_user_id(user_id: user.id)
+        found = false
+        g_user_by_id.each do |element|
+          if element.group_id == ins_group_by_name.id
+            found = true
+          end
+        end
+        if !found
+          g_user = GroupUser.new(group_id: ins_group_by_name.id, user_id: user.id)
+          g_user.save!
+          g_user.reload
+        end
+      else
+        g_user_by_id = GroupUser.find_all_by_user_id(user_id: user.id)
+        found = false
+        g_user_by_id.each do |element|
+          if element.group_id == group_by_name.id
+            found = true
+          end
+        end
+        if !found
+          g_user = GroupUser.new(group_id: group_by_name.id, user_id: user.id)
+          g_user.save!
+          g_user.reload
+        end
+      end
+
     end
 
 
