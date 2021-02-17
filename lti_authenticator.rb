@@ -69,7 +69,9 @@ class LTIAuthenticator < ::Auth::Authenticator
       user.staged = false
       user.active = true
       user.password = SecureRandom.hex(32)
-      user.trust_level = 4
+      if omniauth_params[:roles].include? "instructor"
+        user.trust_level = 4
+      end
       user.save!
       user.reload
     else
