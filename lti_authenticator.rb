@@ -60,6 +60,7 @@ class LTIAuthenticator < ::Auth::Authenticator
     both_matches_found = user_by_email.present? && user_by_username.present?
     no_matches_found = user_by_email.nil? && user_by_username.nil?
     no_groups = group_by_name.nil? && ins_group_by_name.nil?
+    new_user = false
     if both_matches_found && user_by_email.id == user_by_username.id
       log :info, "after_authenticate, found user records by both username and email and they matched, using existing user..."
       user = user_by_email
@@ -74,6 +75,7 @@ class LTIAuthenticator < ::Auth::Authenticator
       end
       user.save!
       user.reload
+      new_user = true
     else
       log :info, "after_authenticate, found user records that did not match by username and email"
       log :info, "after_authenticate, user_by_email: #{user_by_email.inspect}"
@@ -95,6 +97,7 @@ class LTIAuthenticator < ::Auth::Authenticator
 
       category = Category.new(name: omniauth_params[:context_title], slug: omniauth_params[:context_label], user_id: user.id)
       category.reviewable_by_group_id = ins_group.id
+      category.read_restricted = true
       category.save!
       category.reload
 
@@ -110,14 +113,16 @@ class LTIAuthenticator < ::Auth::Authenticator
     group_by_name = Group.find_by(name: omniauth_params[:context_label])
     ins_group_by_name = Group.find_by(name: ins_name)
 
-    if omniauth_params[:roles].include? "instructor"
-      g_user = GroupUser.new(group_id: ins_group_by_name.id, user_id: user.id)
-      g_user.save!
-      g_user.reload
-    else
-      g_user = GroupUser.new(group_id: group_by_name.id, user_id: user.id)
-      g_user.save!
-      g_user.reload
+    if new_user
+      if omniauth_params[:roles].include? "instructor"
+        g_user = GroupUser.new(group_id: ins_group_by_name.id, user_id: user.id)
+        g_user.save!
+        g_user.reload
+      else
+        g_user = GroupUser.new(group_id: group_by_name.id, user_id: user.id)
+        g_user.save!
+        g_user.reload
+      end
     end
 
 
