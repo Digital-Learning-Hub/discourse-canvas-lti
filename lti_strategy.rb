@@ -39,22 +39,22 @@ module OmniAuth
           set_origin_url!(@lti_provider.custom_params)
           super
         rescue ::ActionController::BadRequest => err
-          log :info, "lti_provider.bad_request, params: #{request.params.inspect}, err: #{err.inspect}"
+          log :warn, "lti_provider.bad_request, params: #{request.params.inspect}, err: #{err.inspect}"
           return [400, {}, ['400 Bad Request']]
         rescue ::Timeout::Error => err
-          log :info, "lti_provider.Timeout::Error, params: #{request.params.inspect}, err: #{err.inspect}"
+          log :warn, "lti_provider.Timeout::Error, params: #{request.params.inspect}, err: #{err.inspect}"
           fail!(:timeout)
         rescue ::Net::HTTPFatalError, ::OpenSSL::SSL::SSLError => err
-          log :info, "lti_provider.Net::HTTPFatalError, params: #{request.params.inspect}, err: #{err.inspect}"
+          log :warn, "lti_provider.Net::HTTPFatalError, params: #{request.params.inspect}, err: #{err.inspect}"
           fail!(:service_unavailable)
         rescue ::OAuth::Unauthorized => err
-          log :info, "lti_provider.OAuth::Unauthorized, params: #{request.params.inspect}, err: #{err.inspect}"
+          log :warn, "lti_provider.OAuth::Unauthorized, params: #{request.params.inspect}, err: #{err.inspect}"
           fail!(:invalid_credentials)
         rescue ::OmniAuth::NoSessionError => err
-          log :info, "lti_provider.OmniAuth::NoSessionError, params: #{request.params.inspect}, err: #{err.inspect}"
+          log :warn, "lti_provider.OmniAuth::NoSessionError, params: #{request.params.inspect}, err: #{err.inspect}"
           fail!(:session_expired)
         rescue ::ActiveRecord::RecordInvalid => err
-          log :info, "lti_provider.ActiveRecord::RecordInvalid, params: #{request.params.inspect}, err: #{err.inspect}"
+          log :warn, "lti_provider.ActiveRecord::RecordInvalid, params: #{request.params.inspect}, err: #{err.inspect}"
           fail!(:record_invalid)
         end
       end

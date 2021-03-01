@@ -51,10 +51,12 @@ class LTIAuthenticator < ::Auth::Authenticator
 
     ins_name = omniauth_params[:context_label] + '_INSTRUCTORS'
 
+    log :warn, "ins_group: #{ins_name}"
+
     group_by_name = Group.find_by(name: omniauth_params[:context_label])
     ins_group_by_name = Group.find_by(name: ins_name)
 
-    category_by_name = Category.find_by_slug_path(omniauth_params[:context_label])
+    category_by_name = Category.find_by(name: omniauth_params[:context_title])
 
     both_matches_found = user_by_email.present? && user_by_username.present?
     no_matches_found = user_by_email.nil? && user_by_username.nil?
@@ -97,9 +99,13 @@ class LTIAuthenticator < ::Auth::Authenticator
       ins_group.reload
     end
 
+
+    group_by_name = Group.find_by(name: omniauth_params[:context_label])
+    ins_group_by_name = Group.find_by(name: ins_name)
+
     if category_by_name.nil?
       category = Category.new(name: omniauth_params[:context_title], slug: omniauth_params[:context_label], user_id: user.id)
-      category.reviewable_by_group_id = ins_group.id
+      category.reviewable_by_group_id = ins_group_by_name.id
       category.read_restricted = true
       category.save!
       category.reload
@@ -113,8 +119,6 @@ class LTIAuthenticator < ::Auth::Authenticator
       cat_group_ins.reload
     end
 
-    group_by_name = Group.find_by(name: omniauth_params[:context_label])
-    ins_group_by_name = Group.find_by(name: ins_name)
 
     if new_user
       if omniauth_params[:roles].include? "instructor"
