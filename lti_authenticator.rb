@@ -56,7 +56,7 @@ class LTIAuthenticator < ::Auth::Authenticator
     group_by_name = Group.find_by(name: omniauth_params[:context_label])
     ins_group_by_name = Group.find_by(name: ins_name)
 
-    category_by_name = Category.find_by(name: omniauth_params[:context_title])
+    category_by_name = Category.find_by(name: omniauth_params[:context_label])
 
     both_matches_found = user_by_email.present? && user_by_username.present?
     no_matches_found = user_by_email.nil? && user_by_username.nil?
@@ -104,7 +104,7 @@ class LTIAuthenticator < ::Auth::Authenticator
     ins_group_by_name = Group.find_by(name: ins_name)
 
     if category_by_name.nil?
-      category = Category.new(name: omniauth_params[:context_title], slug: omniauth_params[:context_label], user_id: user.id)
+      category = Category.new(name: omniauth_params[:context_label], slug: omniauth_params[:context_label], user_id: user.id)
       category.reviewable_by_group_id = ins_group_by_name.id
       category.read_restricted = true
       category.save!
