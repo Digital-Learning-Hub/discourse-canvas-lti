@@ -110,8 +110,8 @@ class LTIAuthenticator < ::Auth::Authenticator
       category.save!
       category.reload
 
-      cat_group_main = CategoryGroup.new(category_id: category.id, group_id: main_group.id)
-      cat_group_ins = CategoryGroup.new(category_id: category.id, group_id: ins_group.id)
+      cat_group_main = CategoryGroup.new(category_id: category.id, group_id: group_by_name.id)
+      cat_group_ins = CategoryGroup.new(category_id: category.id, group_id:  ins_group_by_name.id)
 
       cat_group_main.save!
       cat_group_main.reload
