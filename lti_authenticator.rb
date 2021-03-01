@@ -61,10 +61,10 @@ class LTIAuthenticator < ::Auth::Authenticator
     no_groups = group_by_name.nil? && ins_group_by_name.nil?
     new_user = false
     if both_matches_found && user_by_email.id == user_by_username.id
-      log :info, "after_authenticate, found user records by both username and email and they matched, using existing user..."
+      log :warn, "after_authenticate, found user records by both username and email and they matched, using existing user..."
       user = user_by_email
     elsif no_matches_found
-      log :info, "after_authenticate, no matches found for email or username, creating user record for first-time user..."
+      log :warn, "after_authenticate, no matches found for email or username, creating user record for first-time user..."
       user = User.new(email: auth_result.email.downcase, username: auth_result.username, name: auth_result.name,)
       user.staged = false
       user.active = true
@@ -76,9 +76,9 @@ class LTIAuthenticator < ::Auth::Authenticator
       user.reload
       new_user = true
     else
-      log :info, "after_authenticate, found user records that did not match by username and email"
-      log :info, "after_authenticate, user_by_email: #{user_by_email.inspect}"
-      log :info, "after_authenticate, user_by_username: #{user_by_username.inspect}"
+      log :warn, "after_authenticate, found user records that did not match by username and email"
+      log :warn, "after_authenticate, user_by_email: #{user_by_email.inspect}"
+      log :warn, "after_authenticate, user_by_username: #{user_by_username.inspect}"
       raise ::ActiveRecord::RecordInvalid('LTIAuthenticator: edge case for finding User records where username and email did not match, aborting...')
     end
 
