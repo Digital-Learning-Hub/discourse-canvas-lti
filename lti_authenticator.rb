@@ -60,6 +60,7 @@ class LTIAuthenticator < ::Auth::Authenticator
     no_matches_found = user_by_email.nil? && user_by_username.nil?
     no_groups = group_by_name.nil? && ins_group_by_name.nil?
     new_user = false
+
     if both_matches_found && user_by_email.id == user_by_username.id
       log :warn, "after_authenticate, found user records by both username and email and they matched, using existing user..."
       user = user_by_email
@@ -82,17 +83,21 @@ class LTIAuthenticator < ::Auth::Authenticator
       raise ::ActiveRecord::RecordInvalid('LTIAuthenticator: edge case for finding User records where username and email did not match, aborting...')
     end
 
-    if no_groups
+    if group_by_name.nil?
       main_group = Group.new(name: omniauth_params[:context_label])
       main_group.visibility_level = 4
       main_group.save!
       main_group.reload
+    end
 
+    if ins_group_by_name.nil?
       ins_group = Group.new(name: ins_name)
       ins_group.visibility_level = 4
       ins_group.save!
       ins_group.reload
+    end
 
+    if category_by_name.nil?
       category = Category.new(name: omniauth_params[:context_title], slug: omniauth_params[:context_label], user_id: user.id)
       category.reviewable_by_group_id = ins_group.id
       category.read_restricted = true
