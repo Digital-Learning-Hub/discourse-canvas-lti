@@ -49,7 +49,7 @@ class LTIAuthenticator < ::Auth::Authenticator
     user_by_email = User.find_by_email(auth_result.email.downcase)
     user_by_username = User.find_by_username(auth_result.username)
 
-    ins_name = omniauth_params[:context_label] + '_INS'
+    ins_name = omniauth_params[:context_label].delete_suffix!('@') + 'I'
 
     log :warn, "ins_group: #{ins_name}"
 
